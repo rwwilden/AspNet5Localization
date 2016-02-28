@@ -1,0 +1,25 @@
+{
+    "version": "0.0.1-*",
+    "description": "Localization.JsonLocalizer Class Library",
+    "authors": [
+        "Ronald Wildenberg"
+    ],
+    "tags": [
+        "localization,json"
+    ],
+    "projectUrl": "",
+    "licenseUrl": "",
+    "tooling": {
+        "defaultNamespace": "Localization.JsonLocalizer"
+    },
+    "dependencies": {
+        "Newtonsoft.Json": "8.0.2",
+        "Microsoft.AspNet.Mvc": "6.0.0-rc1-final"
+    },
+    "frameworks": {
+        "dnx451": { },
+        "net451": { },
+        "dnxcore50": { },
+        "dotnet5.4": { }
+    }
+}
