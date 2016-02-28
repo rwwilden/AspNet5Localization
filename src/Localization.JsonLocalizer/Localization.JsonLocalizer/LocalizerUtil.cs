@@ -1,7 +1,8 @@
 using System;
-using System.Text;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Text;
 
 namespace Localization.JsonLocalizer.StringLocalizer
 {
@@ -35,7 +36,7 @@ namespace Localization.JsonLocalizer.StringLocalizer
             {
                 for (var j = 0; j < components.Length; j++)
                 {
-                    expansion.Append(components[j]).Append(j < i ? '\\' : '.');
+                    expansion.Append(components[j]).Append(j < i ? Path.DirectorySeparatorChar : '.');
                 }
                 yield return expansion.ToString();
                 expansion.Clear();
@@ -48,7 +49,7 @@ namespace Localization.JsonLocalizer.StringLocalizer
             {
                 for (var j = 0; j < componentsWithoutPrefix.Length; j++)
                 {
-                    expansion.Append(componentsWithoutPrefix[j]).Append(j < i ? '\\' : '.');
+                    expansion.Append(componentsWithoutPrefix[j]).Append(j < i ? Path.DirectorySeparatorChar : '.');
                 }
                 yield return expansion.ToString();
                 expansion.Clear();
