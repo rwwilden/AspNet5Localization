@@ -41,26 +41,13 @@ namespace Localization.JsonLocalizer.StringLocalizer
         {
             get
             {
-                // Attempt to find resource file.
-                var currentCulture = CultureInfo.CurrentCulture;
-
-                var resourceObject = GetResourceObject(currentCulture);
-                if (resourceObject == null)
+                if (name == null)
                 {
-                    _logger.LogInformation($"No resource file found or error occurred for base name {_baseName} and culture {currentCulture}.");
-                    return new LocalizedString(name, name, resourceNotFound: true);
+                    throw new ArgumentNullException(nameof(name));
                 }
 
-                // Attempt to get resource with the given name from the resource object.
-                JToken value;
-                if (resourceObject.TryGetValue(name, out value))
-                {
-                    var localizedString = value.ToString();
-                    return new LocalizedString(name, localizedString);
-                }
-
-                _logger.LogInformation($"Could not find key '{name}' in resource file for base name {_baseName} and culture {currentCulture}.");
-                return new LocalizedString(name, name, resourceNotFound: true);
+                var value = GetLocalizedString(name);
+                return new LocalizedString(name, value ?? name, resourceNotFound: value == null);
             }
         }
 
@@ -68,7 +55,14 @@ namespace Localization.JsonLocalizer.StringLocalizer
         {
             get
             {
-                throw new NotImplementedException();
+                if (name == null)
+                {
+                    throw new ArgumentNullException(nameof(name));
+                }
+
+                var format = GetLocalizedString(name);
+                var value = string.Format(format ?? name, arguments);
+                return new LocalizedString(name, value, resourceNotFound: format == null);
             }
         }
 
@@ -80,6 +74,34 @@ namespace Localization.JsonLocalizer.StringLocalizer
         public IStringLocalizer WithCulture(CultureInfo culture)
         {
             throw new NotImplementedException();
+        }
+        
+        private string GetLocalizedString(string name)
+        {
+            if (name == null)
+            {
+                throw new ArgumentNullException(nameof(name));
+            }
+            
+            // Attempt to find resource file.
+            var currentCulture = CultureInfo.CurrentCulture;
+            var resourceObject = GetResourceObject(currentCulture);
+            if (resourceObject == null)
+            {
+                _logger.LogInformation($"No resource file found or error occurred for base name {_baseName} and culture {currentCulture}.");
+                return null;
+            }
+
+            // Attempt to get resource with the given name from the resource object.
+            JToken value;
+            if (resourceObject.TryGetValue(name, out value))
+            {
+                var localizedString = value.ToString();
+                return localizedString;
+            }
+
+            _logger.LogInformation($"Could not find key '{name}' in resource file for base name {_baseName} and culture {currentCulture}.");
+            return null;
         }
 
         private JObject GetResourceObject(CultureInfo currentCulture)
