@@ -99,7 +99,7 @@ namespace Localization.JsonLocalizer.StringLocalizer
                 var resourceObject = GetResourceObject(currentCulture);
                 if (resourceObject == null)
                 {
-                    _logger.LogInformation($"No resource file found or error occurred for base name {_baseName} and culture {currentCulture}.");
+                    _logger.LogInformation($"No resource file found or error occurred for base name {_baseName}, culture {currentCulture} and key '{name}'");
                 }
                 else
                 {
@@ -114,9 +114,10 @@ namespace Localization.JsonLocalizer.StringLocalizer
                 // Consult parent culture.
                 previousCulture = currentCulture;
                 currentCulture = currentCulture.Parent;
+                _logger.LogVerbose($"Switching to parent culture {currentCulture} for key '{name}'.");
             } while (previousCulture != currentCulture);
 
-            _logger.LogInformation($"Could not find key '{name}' in resource file for base name {_baseName} and culture {CultureInfo.CurrentCulture}.");
+            _logger.LogInformation($"Could not find key '{name}' in resource file for base name {_baseName} and culture {CultureInfo.CurrentCulture}");
             return null;
         }
 
@@ -140,12 +141,12 @@ namespace Localization.JsonLocalizer.StringLocalizer
                     resourcePath = resourceFileLocation + cultureSuffix + ".json";
                     if (File.Exists(resourcePath))
                     {
-                        _logger.LogInformation($"Resource file location {resourcePath} found.");
+                        _logger.LogInformation($"Resource file location {resourcePath} found");
                         break;
                     }
                     else
                     {
-                        _logger.LogVerbose($"Resource file location {resourcePath} does not exist.");
+                        _logger.LogVerbose($"Resource file location {resourcePath} does not exist");
                         resourcePath = null;
                     }
                 }
@@ -180,11 +181,7 @@ namespace Localization.JsonLocalizer.StringLocalizer
 
             lazyJObjectGetter = _resourceObjectCache.GetOrAdd(cultureSuffix, lazyJObjectGetter);
             var resourceObject = lazyJObjectGetter.Value;
-            if (resourceObject != null)
-            {
-                return resourceObject;
-            }
-            return null;
+            return resourceObject;
         }
 
         private string[] GetCultureSuffixes(CultureInfo currentCulture)

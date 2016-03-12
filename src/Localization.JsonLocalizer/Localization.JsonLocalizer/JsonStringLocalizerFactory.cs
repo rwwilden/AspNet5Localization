@@ -62,7 +62,7 @@ namespace Localization.JsonLocalizer.StringLocalizer
                 throw new ArgumentNullException(nameof(resourceSource));
             }
             
-            _logger.LogVerbose($"Getting localizer for type {resourceSource}.");
+            _logger.LogVerbose($"Getting localizer for type {resourceSource}");
             
             var typeInfo = resourceSource.GetTypeInfo();
             var assembly = typeInfo.Assembly;
@@ -85,7 +85,7 @@ namespace Localization.JsonLocalizer.StringLocalizer
                 throw new ArgumentNullException(nameof(baseName));
             }
             
-            _logger.LogVerbose($"Getting localizer for baseName {baseName} and location {location}.");
+            _logger.LogVerbose($"Getting localizer for baseName {baseName} and location {location}");
             
             location = location ?? _applicationEnvironment.ApplicationName;
             
