@@ -66,8 +66,15 @@ namespace Localization.JsonLocalizer.StringLocalizer
             }
         }
 
-        public IEnumerable<LocalizedString> GetAllStrings(bool includeAncestorCultures)
+        public virtual IEnumerable<LocalizedString> GetAllStrings(bool includeAncestorCultures) =>
+            GetAllStrings(includeAncestorCultures, CultureInfo.CurrentUICulture);
+            
+        protected IEnumerable<LocalizedString> GetAllStrings(bool includeAncestorCultures, CultureInfo culture)
         {
+            if (culture == null)
+            {
+                throw new ArgumentNullException(nameof(culture));
+            }
             throw new NotImplementedException();
         }
 
@@ -83,87 +90,99 @@ namespace Localization.JsonLocalizer.StringLocalizer
                 throw new ArgumentNullException(nameof(name));
             }
             
-            // Attempt to find resource file.
+            // Attempt to get resource with the given name from the resource object. if not found, try parent
+            // resource object until parent begets himself.
             var currentCulture = CultureInfo.CurrentCulture;
-            var resourceObject = GetResourceObject(currentCulture);
-            if (resourceObject == null)
+            CultureInfo previousCulture = null;
+            do
             {
-                _logger.LogInformation($"No resource file found or error occurred for base name {_baseName} and culture {currentCulture}.");
-                return null;
-            }
+                var resourceObject = GetResourceObject(currentCulture);
+                if (resourceObject == null)
+                {
+                    _logger.LogInformation($"No resource file found or error occurred for base name {_baseName} and culture {currentCulture}.");
+                }
+                else
+                {
+                    JToken value;
+                    if (resourceObject.TryGetValue(name, out value))
+                    {
+                        var localizedString = value.ToString();
+                        return localizedString;
+                    }
+                }
+                
+                // Consult parent culture.
+                previousCulture = currentCulture;
+                currentCulture = currentCulture.Parent;
+            } while (previousCulture != currentCulture);
 
-            // Attempt to get resource with the given name from the resource object.
-            JToken value;
-            if (resourceObject.TryGetValue(name, out value))
-            {
-                var localizedString = value.ToString();
-                return localizedString;
-            }
-
-            _logger.LogInformation($"Could not find key '{name}' in resource file for base name {_baseName} and culture {currentCulture}.");
+            _logger.LogInformation($"Could not find key '{name}' in resource file for base name {_baseName} and culture {CultureInfo.CurrentCulture}.");
             return null;
         }
 
         private JObject GetResourceObject(CultureInfo currentCulture)
         {
-            var cultureSuffixes = GetCultureSuffixes(currentCulture);
-
-            // Check all locations starting with the most specific suffix.
-            foreach (var cultureSuffix in cultureSuffixes)
+            if (currentCulture == null)
             {
-                var lazyJObjectGetter = new Lazy<JObject>(() =>
+                throw new ArgumentNullException(nameof(currentCulture));
+            }
+            
+            var cultureSuffix = currentCulture.IsNeutralCulture
+                ? ""
+                : currentCulture.Name + ".";
+            
+            var lazyJObjectGetter = new Lazy<JObject>(() =>
+            {
+                // First attempt to find a resource file location that exists.
+                string resourcePath = null;
+                foreach (var resourceFileLocation in _resourceFileLocations)
                 {
-                    // First attempt to find a resource file location that exists.
-                    string resourcePath = null;
-                    foreach (var resourceFileLocation in _resourceFileLocations)
+                    resourcePath = resourceFileLocation + cultureSuffix + "json";
+                    if (File.Exists(resourcePath))
                     {
-                        resourcePath = resourceFileLocation + cultureSuffix + "json";
-                        if (File.Exists(resourcePath))
-                        {
-                            _logger.LogInformation($"Resource file location {resourcePath} found.");
-                            break;
-                        }
-                        else
-                        {
-                            _logger.LogVerbose($"Resource file location {resourcePath} does not exist.");
-                            resourcePath = null;
-                        }
+                        _logger.LogInformation($"Resource file location {resourcePath} found.");
+                        break;
                     }
-                    if (resourcePath == null)
+                    else
                     {
-                        _logger.LogVerbose($"No resource file found for suffix {cultureSuffix}");
-                        return null;
+                        _logger.LogVerbose($"Resource file location {resourcePath} does not exist.");
+                        resourcePath = null;
                     }
-
-                    // Found a resource file path: attempt to parse it into a JObject.
-                    try
-                    {
-                        var resourceFileStream =
-                            new FileStream(resourcePath, FileMode.Open, FileAccess.Read, FileShare.Read, 4096, FileOptions.Asynchronous | FileOptions.SequentialScan);
-                        using (resourceFileStream)
-                        {
-                            var resourceReader =
-                                new JsonTextReader(new StreamReader(resourceFileStream, Encoding.UTF8, detectEncodingFromByteOrderMarks: true));
-                            using (resourceReader)
-                            {
-                                return JObject.Load(resourceReader);
-                            }
-                        }
-                    }
-                    catch (Exception e)
-                    {
-                        _logger.LogError($"Error occurred attempting to read JSON resource file {resourcePath}: {e}");
-                        return null;
-                    }
-
-                }, LazyThreadSafetyMode.ExecutionAndPublication);
-
-                lazyJObjectGetter = _resourceObjectCache.GetOrAdd(cultureSuffix, lazyJObjectGetter);
-                var resourceObject = lazyJObjectGetter.Value;
-                if (resourceObject != null)
-                {
-                    return resourceObject;
                 }
+                if (resourcePath == null)
+                {
+                    _logger.LogVerbose($"No resource file found for suffix {cultureSuffix}");
+                    return null;
+                }
+
+                // Found a resource file path: attempt to parse it into a JObject.
+                try
+                {
+                    var resourceFileStream =
+                        new FileStream(resourcePath, FileMode.Open, FileAccess.Read, FileShare.Read, 4096, FileOptions.Asynchronous | FileOptions.SequentialScan);
+                    using (resourceFileStream)
+                    {
+                        var resourceReader =
+                            new JsonTextReader(new StreamReader(resourceFileStream, Encoding.UTF8, detectEncodingFromByteOrderMarks: true));
+                        using (resourceReader)
+                        {
+                            return JObject.Load(resourceReader);
+                        }
+                    }
+                }
+                catch (Exception e)
+                {
+                    _logger.LogError($"Error occurred attempting to read JSON resource file {resourcePath}: {e}");
+                    return null;
+                }
+
+            }, LazyThreadSafetyMode.ExecutionAndPublication);
+
+            lazyJObjectGetter = _resourceObjectCache.GetOrAdd(cultureSuffix, lazyJObjectGetter);
+            var resourceObject = lazyJObjectGetter.Value;
+            if (resourceObject != null)
+            {
+                return resourceObject;
             }
             return null;
         }
