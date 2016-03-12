@@ -127,9 +127,9 @@ namespace Localization.JsonLocalizer.StringLocalizer
                 throw new ArgumentNullException(nameof(currentCulture));
             }
             
-            var cultureSuffix = currentCulture.IsNeutralCulture
-                ? ""
-                : currentCulture.Name + ".";
+            _logger.LogVerbose($"Attempt to get resource object for culture {currentCulture}");
+            var cultureSuffix = "." + currentCulture.Name;
+            cultureSuffix = cultureSuffix == "." ? "" : cultureSuffix;
             
             var lazyJObjectGetter = new Lazy<JObject>(() =>
             {
@@ -137,7 +137,7 @@ namespace Localization.JsonLocalizer.StringLocalizer
                 string resourcePath = null;
                 foreach (var resourceFileLocation in _resourceFileLocations)
                 {
-                    resourcePath = resourceFileLocation + cultureSuffix + "json";
+                    resourcePath = resourceFileLocation + cultureSuffix + ".json";
                     if (File.Exists(resourcePath))
                     {
                         _logger.LogInformation($"Resource file location {resourcePath} found.");

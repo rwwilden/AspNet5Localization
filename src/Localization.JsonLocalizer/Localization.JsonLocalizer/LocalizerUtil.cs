@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text;
 
 namespace Localization.JsonLocalizer.StringLocalizer
@@ -38,7 +37,8 @@ namespace Localization.JsonLocalizer.StringLocalizer
                 {
                     expansion.Append(components[j]).Append(j < i ? Path.DirectorySeparatorChar : '.');
                 }
-                yield return expansion.ToString();
+                // Remove trailing period.
+                yield return expansion.Remove(expansion.Length - 1, 1).ToString();
                 expansion.Clear();
             }
 
@@ -51,7 +51,8 @@ namespace Localization.JsonLocalizer.StringLocalizer
                 {
                     expansion.Append(componentsWithoutPrefix[j]).Append(j < i ? Path.DirectorySeparatorChar : '.');
                 }
-                yield return expansion.ToString();
+                // Remove trailing period.
+                yield return expansion.Remove(expansion.Length - 1, 1).ToString();
                 expansion.Clear();
             }
         }
