@@ -25,6 +25,19 @@ namespace Localization.JsonLocalizer.StringLocalizer
 
         public JsonStringLocalizer(string baseName, string applicationName, ILogger logger)
         {
+            if (baseName == null)
+            {
+                throw new ArgumentNullException(nameof(baseName));
+            }
+            if (applicationName == null)
+            {
+                throw new ArgumentNullException(nameof(applicationName));
+            }
+            if (logger == null)
+            {
+                throw new ArgumentNullException(nameof(logger));
+            }
+            
             this._baseName = baseName;
             this._applicationName = applicationName;
             this._logger = logger;
@@ -37,7 +50,7 @@ namespace Localization.JsonLocalizer.StringLocalizer
             }
         }
 
-        public LocalizedString this[string name]
+        public virtual LocalizedString this[string name]
         {
             get
             {
@@ -46,12 +59,12 @@ namespace Localization.JsonLocalizer.StringLocalizer
                     throw new ArgumentNullException(nameof(name));
                 }
 
-                var value = GetLocalizedString(name);
+                var value = GetLocalizedString(name, CultureInfo.CurrentUICulture);
                 return new LocalizedString(name, value ?? name, resourceNotFound: value == null);
             }
         }
 
-        public LocalizedString this[string name, params object[] arguments]
+        public virtual LocalizedString this[string name, params object[] arguments]
         {
             get
             {
@@ -60,7 +73,7 @@ namespace Localization.JsonLocalizer.StringLocalizer
                     throw new ArgumentNullException(nameof(name));
                 }
 
-                var format = GetLocalizedString(name);
+                var format = GetLocalizedString(name, CultureInfo.CurrentUICulture);
                 var value = string.Format(format ?? name, arguments);
                 return new LocalizedString(name, value, resourceNotFound: format == null);
             }
@@ -87,7 +100,7 @@ namespace Localization.JsonLocalizer.StringLocalizer
             throw new NotImplementedException();
         }
 
-        private string GetLocalizedString(string name)
+        protected string GetLocalizedString(string name, CultureInfo culture)
         {
             if (name == null)
             {
