@@ -68,7 +68,7 @@ namespace Localization.JsonLocalizer.StringLocalizer
 
         public virtual IEnumerable<LocalizedString> GetAllStrings(bool includeAncestorCultures) =>
             GetAllStrings(includeAncestorCultures, CultureInfo.CurrentUICulture);
-            
+
         protected IEnumerable<LocalizedString> GetAllStrings(bool includeAncestorCultures, CultureInfo culture)
         {
             if (culture == null)
@@ -80,16 +80,20 @@ namespace Localization.JsonLocalizer.StringLocalizer
 
         public IStringLocalizer WithCulture(CultureInfo culture)
         {
+            if (culture == null)
+            {
+                return new JsonStringLocalizer(_baseName, _applicationName, _logger);
+            }
             throw new NotImplementedException();
         }
-        
+
         private string GetLocalizedString(string name)
         {
             if (name == null)
             {
                 throw new ArgumentNullException(nameof(name));
             }
-            
+
             // Attempt to get resource with the given name from the resource object. if not found, try parent
             // resource object until parent begets himself.
             var currentCulture = CultureInfo.CurrentCulture;
@@ -110,7 +114,7 @@ namespace Localization.JsonLocalizer.StringLocalizer
                         return localizedString;
                     }
                 }
-                
+
                 // Consult parent culture.
                 previousCulture = currentCulture;
                 currentCulture = currentCulture.Parent;
@@ -127,11 +131,11 @@ namespace Localization.JsonLocalizer.StringLocalizer
             {
                 throw new ArgumentNullException(nameof(currentCulture));
             }
-            
+
             _logger.LogVerbose($"Attempt to get resource object for culture {currentCulture}");
             var cultureSuffix = "." + currentCulture.Name;
             cultureSuffix = cultureSuffix == "." ? "" : cultureSuffix;
-            
+
             var lazyJObjectGetter = new Lazy<JObject>(() =>
             {
                 // First attempt to find a resource file location that exists.
@@ -203,7 +207,7 @@ namespace Localization.JsonLocalizer.StringLocalizer
                     cultureSuffixes = new[] { currentCulture.Name + ".", currentCulture.Parent.Name + ".", "" };
                 }
             }
-            
+
             var cultureSuffixesLogString = string.Join(", ", cultureSuffixes);
             _logger.LogVerbose($"Using culture suffixes {cultureSuffixesLogString}");
             return cultureSuffixes;
