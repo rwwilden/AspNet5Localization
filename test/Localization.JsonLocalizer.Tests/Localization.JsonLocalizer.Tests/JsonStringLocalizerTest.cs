@@ -1,7 +1,4 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
@@ -16,6 +13,21 @@ namespace Localization.JsonLocalizer.StringLocalizer
             var logger = new Mock<ILogger>();
             var ex = Assert.Throws<ArgumentNullException>(() => new JsonStringLocalizer(null, "", logger.Object));
             Assert.Equal(ex.ParamName, "baseName");
+        }
+        
+        [Fact]
+        public void CreateWithNullApplicationName()
+        {
+            var logger = new Mock<ILogger>();
+            var ex = Assert.Throws<ArgumentNullException>(() => new JsonStringLocalizer("", null, logger.Object));
+            Assert.Equal(ex.ParamName, "applicationName");
+        }
+        
+        [Fact]
+        public void CreateWithNullLogger()
+        {
+            var ex = Assert.Throws<ArgumentNullException>(() => new JsonStringLocalizer("", "", null));
+            Assert.Equal(ex.ParamName, "logger");
         }
     }
 }
