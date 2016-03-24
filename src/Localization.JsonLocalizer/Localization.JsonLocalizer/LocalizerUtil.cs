@@ -5,10 +5,13 @@ using System.Text;
 
 namespace Localization.JsonLocalizer.StringLocalizer
 {
-    internal static class LocalizerUtil
+    public static class LocalizerUtil
     {
-        internal static string TrimPrefix(string name, string prefix)
+        public static string TrimPrefix(string name, string prefix)
         {
+            if (name == null) throw new ArgumentNullException(nameof(name));
+            if (prefix == null) throw new ArgumentNullException(nameof(prefix));
+
             if (name.StartsWith(prefix, StringComparison.Ordinal))
             {
                 return name.Substring(prefix.Length);
@@ -16,12 +19,11 @@ namespace Localization.JsonLocalizer.StringLocalizer
             return name;
         }
 
-        internal static IEnumerable<string> ExpandPaths(string name, string baseName)
+        public static IEnumerable<string> ExpandPaths(string name, string baseName)
         {
-            if (name == null)
-            {
-                throw new ArgumentNullException(nameof(name));
-            }
+            if (name == null) throw new ArgumentNullException(nameof(name));
+            if (baseName == null) throw new ArgumentNullException(nameof(baseName));
+
             return ExpandPathIterator(name, baseName);
         }
 
@@ -30,7 +32,7 @@ namespace Localization.JsonLocalizer.StringLocalizer
             StringBuilder expansion = new StringBuilder();
 
             // Start replacing periods, starting at the beginning.
-            var components = name.Split(new[] { '.' }, StringSplitOptions.None);
+            var components = name.Split(new[] { '.' }, StringSplitOptions.RemoveEmptyEntries);
             for (var i = 0; i < components.Length; i++)
             {
                 for (var j = 0; j < components.Length; j++)
@@ -43,17 +45,21 @@ namespace Localization.JsonLocalizer.StringLocalizer
             }
 
             // Do the same with the name where baseName prefix is removed.
-            var nameWithoutPrefix = TrimPrefix(name, baseName).Substring(1);
-            var componentsWithoutPrefix = nameWithoutPrefix.Split(new[] { '.' }, StringSplitOptions.None);
-            for (var i = 0; i < componentsWithoutPrefix.Length; i++)
+            var nameWithoutPrefix = TrimPrefix(name, baseName);
+            if (nameWithoutPrefix != string.Empty && nameWithoutPrefix != name)
             {
-                for (var j = 0; j < componentsWithoutPrefix.Length; j++)
+                nameWithoutPrefix = nameWithoutPrefix.Substring(1);
+                var componentsWithoutPrefix = nameWithoutPrefix.Split(new[] { '.' }, StringSplitOptions.RemoveEmptyEntries);
+                for (var i = 0; i < componentsWithoutPrefix.Length; i++)
                 {
-                    expansion.Append(componentsWithoutPrefix[j]).Append(j < i ? Path.DirectorySeparatorChar : '.');
+                    for (var j = 0; j < componentsWithoutPrefix.Length; j++)
+                    {
+                        expansion.Append(componentsWithoutPrefix[j]).Append(j < i ? Path.DirectorySeparatorChar : '.');
+                    }
+                    // Remove trailing period.
+                    yield return expansion.Remove(expansion.Length - 1, 1).ToString();
+                    expansion.Clear();
                 }
-                // Remove trailing period.
-                yield return expansion.Remove(expansion.Length - 1, 1).ToString();
-                expansion.Clear();
             }
         }
     }

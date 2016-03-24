@@ -3,7 +3,6 @@ using System.Collections.Concurrent;
 using System.Linq;
 using System.IO;
 using System.Reflection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.OptionsModel;
