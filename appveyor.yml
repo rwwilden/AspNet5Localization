@@ -18,3 +18,10 @@ branches:
   # whitelist
   only:
     - develop
+    
+#---------------------------------#
+#    environment configuration    #
+#---------------------------------#
+
+# Operating system (build VM template)
+os: Visual Studio 2015
