@@ -36,13 +36,10 @@ install:
   - ps: "&{$Branch='dev';iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/aspnet/Home/dev/dnvminstall.ps1'))}"
   # Install coreclr
   - dnvm upgrade -r coreclr
-  - dnvm use coreclr
   - dnvm list
-  # to run script as a PowerShell command prepend it with ps:
-  - ps: Write-Host 'This is PowerShell'
-  # batch commands start from cmd:
-  - cmd: echo This is batch again
-  - cmd: set MY_VAR=12345
+
+before_build:
+  - dnu restore
 
 # build Configuration, i.e. Debug, Release, etc.
 configuration: Debug
