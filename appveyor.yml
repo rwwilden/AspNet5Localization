@@ -32,6 +32,8 @@ install:
   # https://www.nimeshjm.com/building-asp-net-core-applications-in-appveyor/
   - nuget sources add -Name api.nuget.org -Source https://api.nuget.org/v3/index.json
   - nuget sources list
+  # Install dnvm
+  - ps: "&{$Branch='dev';iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/aspnet/Home/dev/dnvminstall.ps1'))}"
   # to run script as a PowerShell command prepend it with ps:
   - ps: Write-Host 'This is PowerShell'
   # batch commands start from cmd:
