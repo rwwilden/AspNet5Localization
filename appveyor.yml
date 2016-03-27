@@ -31,6 +31,7 @@ install:
   # by default, all script lines are interpreted as batch
   # https://www.nimeshjm.com/building-asp-net-core-applications-in-appveyor/
   - nuget sources add -Name api.nuget.org -Source https://api.nuget.org/v3/index.json
+  - nuget sources add -Name myget.org -Source https://www.myget.org/F/aspnet-contrib/api/v3/index.json
   - nuget sources list
   # Install dnvm
   - ps: "&{$Branch='dev';iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/aspnet/Home/dev/dnvminstall.ps1'))}"
