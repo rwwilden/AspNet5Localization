@@ -40,6 +40,13 @@ install:
 
 before_build:
   - dnu restore
+  - echo %cd%
+  - cd src\Localization.JsonLocalizer
+
+build: off
+
+build_script:
+  - echo "BUILDING" %cd%
 
 # build Configuration, i.e. Debug, Release, etc.
 configuration: Debug
