@@ -47,7 +47,7 @@ install:
 before_build:
   - dnu restore
   - echo %cd%
-  - cd src\Localization.JsonLocalizer
+  - cd %APPVEYOR_BUILD_FOLDER%\src\Localization.JsonLocalizer
 
 build: off
 
@@ -59,7 +59,7 @@ build_script:
 #-----------------------------------------------------------------#
 
 before_test:
-  - cd %APPVEYOR_BUILD_FOLDER%
+  - cd %APPVEYOR_BUILD_FOLDER%\test\Localization.JsonLocalizer.Tests
 
 test: off
 
