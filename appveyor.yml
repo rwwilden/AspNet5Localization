@@ -33,7 +33,7 @@ environment:
 # scripts that are called at very beginning, before repo cloning
 init:
   - git config --global core.autocrlf input
-  - ps: $Env:LABEL = "CI" + $Env:APPVEYOR_BUILD_NUMBER.PadLeft(5, "0")
+  - ps: $Env:LABEL = $Env:APPVEYOR_REPO_BRANCH + "-" + $Env:APPVEYOR_BUILD_NUMBER.PadLeft(5, "0")
 
 nuget:
   disable_publish_on_pr: true     # disable publishing of .nupkg artifacts to
@@ -55,6 +55,7 @@ before_build:
 
 build_script:
   - dotnet build "src\Localization.JsonLocalizer" -c %CONFIGURATION% --no-dependencies --version-suffix %LABEL%
+  - dotnet build "test\Localization.JsonLocalizer.Tests" -c %CONFIGURATION% --version-suffix %LABEL%
 
 after_build:
   - dotnet pack "src\Localization.JsonLocalizer" -c %CONFIGURATION% --no-build --version-suffix %LABEL% -o artifacts
@@ -66,7 +67,7 @@ after_build:
 test: off
 
 test_script:
-  - dotnet test "test\Localization.JsonLocalizer.Tests" -c %CONFIGURATION% --version-suffix %LABEL%
+  - dotnet test "test\Localization.JsonLocalizer.Tests" -c %CONFIGURATION% --no-build
 
 artifacts:
   - path: artifacts\**\*.*
