@@ -4,22 +4,21 @@
     "authors": [
         "Ronald Wildenberg"
     ],
-    "tags": [
-        "localization,json"
-    ],
-    "projectUrl": "",
-    "licenseUrl": "",
+    "packOptions": {
+        "tags": [ "localization", "json" ],
+        "projectUrl": "",
+        "licenseUrl": ""
+    },
     "tooling": {
         "defaultNamespace": "Localization.JsonLocalizer"
     },
     "dependencies": {
-        "Newtonsoft.Json": "8.0.2",
-        "Microsoft.AspNet.Mvc": "6.0.0-rc1-final"
+        "Microsoft.AspNetCore.Hosting.Abstractions": "1.0.0",
+        "Microsoft.AspNetCore.Localization": "1.0.0",
+        "Newtonsoft.Json": "9.0.1"
     },
     "frameworks": {
-        "dnx451": { },
-        "net451": { },
-        "dnxcore50": { },
-        "dotnet5.4": { }
+        "net451": {},
+        "netstandard1.3": {}
     }
 }

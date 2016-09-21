@@ -3,10 +3,10 @@ using System.Collections.Concurrent;
 using System.Linq;
 using System.IO;
 using System.Reflection;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.OptionsModel;
-using Microsoft.Extensions.PlatformAbstractions;
+using Microsoft.Extensions.Options;
 
 namespace Localization.JsonLocalizer.StringLocalizer
 {
@@ -17,11 +17,11 @@ namespace Localization.JsonLocalizer.StringLocalizer
         private readonly ConcurrentDictionary<string, JsonStringLocalizer> _localizerCache =
             new ConcurrentDictionary<string, JsonStringLocalizer>();
         
-        private readonly IApplicationEnvironment _applicationEnvironment;
+        private readonly IHostingEnvironment _applicationEnvironment;
         private readonly ILogger<JsonStringLocalizerFactory> _logger;
         private string _resourcesRelativePath;
 
-        public JsonStringLocalizerFactory(IApplicationEnvironment applicationEnvironment,
+        public JsonStringLocalizerFactory(IHostingEnvironment applicationEnvironment,
                                           IOptions<JsonLocalizationOptions> localizationOptions,
                                           ILogger<JsonStringLocalizerFactory> logger)
         {
@@ -49,7 +49,7 @@ namespace Localization.JsonLocalizer.StringLocalizer
                     .Replace(Path.DirectorySeparatorChar, '.') + ".";
             }
             
-            logger.LogVerbose($"Created {nameof(JsonStringLocalizerFactory)} with:{Environment.NewLine}" +
+            logger.LogTrace($"Created {nameof(JsonStringLocalizerFactory)} with:{Environment.NewLine}" +
                 $"    (application name: {applicationEnvironment.ApplicationName}{Environment.NewLine}" +
                 $"    (resources relative path: {_resourcesRelativePath})");
         }
@@ -61,7 +61,7 @@ namespace Localization.JsonLocalizer.StringLocalizer
                 throw new ArgumentNullException(nameof(resourceSource));
             }
             
-            _logger.LogVerbose($"Getting localizer for type {resourceSource}");
+            _logger.LogTrace($"Getting localizer for type {resourceSource}");
             
             var typeInfo = resourceSource.GetTypeInfo();
             var assembly = typeInfo.Assembly;
@@ -71,7 +71,7 @@ namespace Localization.JsonLocalizer.StringLocalizer
                 ? typeInfo.FullName
                 : _applicationEnvironment.ApplicationName + "." + _resourcesRelativePath +
                     LocalizerUtil.TrimPrefix(typeInfo.FullName, _applicationEnvironment.ApplicationName + ".");
-            _logger.LogVerbose($"Localizer basename: {resourceBaseName}");
+            _logger.LogTrace($"Localizer basename: {resourceBaseName}");
 
             return _localizerCache.GetOrAdd(
                 resourceBaseName, new JsonStringLocalizer(resourceBaseName, _applicationEnvironment.ApplicationName, _logger));
@@ -84,7 +84,7 @@ namespace Localization.JsonLocalizer.StringLocalizer
                 throw new ArgumentNullException(nameof(baseName));
             }
             
-            _logger.LogVerbose($"Getting localizer for baseName {baseName} and location {location}");
+            _logger.LogTrace($"Getting localizer for baseName {baseName} and location {location}");
             
             location = location ?? _applicationEnvironment.ApplicationName;
             
@@ -97,7 +97,7 @@ namespace Localization.JsonLocalizer.StringLocalizer
                 resourceBaseName = resourceBaseName.Substring(0, resourceBaseName.Length - viewExtension.Length);
             }
             
-            _logger.LogVerbose($"Localizer basename: {resourceBaseName}");
+            _logger.LogTrace($"Localizer basename: {resourceBaseName}");
             
             return _localizerCache.GetOrAdd(
                 resourceBaseName, new JsonStringLocalizer(resourceBaseName, _applicationEnvironment.ApplicationName, _logger));

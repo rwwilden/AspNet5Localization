@@ -23,48 +23,51 @@ branches:
 #    environment configuration    #
 #---------------------------------#
 
-# Operating system (build VM template)
-os: Visual Studio 2015
+# Build worker image (VM template)
+image: Visual Studio 2015
 
-# scripts that run after cloning repository
-install:
-  # https://www.nimeshjm.com/building-asp-net-core-applications-in-appveyor/
-  # Add NuGet feeds.
-  - nuget sources add -Name api.nuget.org -Source https://api.nuget.org/v3/index.json
-  - nuget sources add -Name myget.org -Source https://www.myget.org/F/aspnet-contrib/api/v3/index.json
-  - nuget sources list
-  # Install dnvm
-  - ps: "&{$Branch='dev';iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/aspnet/Home/dev/dnvminstall.ps1'))}"
-  # Install coreclr
-  - dnvm upgrade -r coreclr -NoNative
-  - dnvm list
+environment:
+  # Don't report back to the mothership
+  DOTNET_CLI_TELEMETRY_OPTOUT: 1
 
+# scripts that are called at very beginning, before repo cloning
+init:
+  - git config --global core.autocrlf input
+  - ps: $Env:LABEL = $Env:APPVEYOR_REPO_BRANCH + "-" + $Env:APPVEYOR_BUILD_NUMBER.PadLeft(5, "0")
+
+nuget:
+  disable_publish_on_pr: true     # disable publishing of .nupkg artifacts to
+                                  # account/project feeds for pull request builds
 
 #-----------------------------------------------------------------#
 # Build configuration.                                            #
 #-----------------------------------------------------------------#
 
-before_build:
-  - dnu restore
-  - echo %cd%
-  - cd %APPVEYOR_BUILD_FOLDER%\src\Localization.JsonLocalizer
+# build Configuration, i.e. Debug, Release, etc.
+configuration: Release
 
 build: off
 
+# https://github.com/StevenLiekens/dotnet-core-appveyor
+
+before_build:
+  - appveyor-retry dotnet restore -v Minimal
+
 build_script:
-  - dnu build
+  - dotnet build "src\Localization.JsonLocalizer" -c %CONFIGURATION% --no-dependencies --version-suffix %LABEL%
+  - dotnet build "test\Localization.JsonLocalizer.Tests" -c %CONFIGURATION% --version-suffix %LABEL%
+
+after_build:
+  - dotnet pack "src\Localization.JsonLocalizer" -c %CONFIGURATION% --no-build --version-suffix %LABEL% -o artifacts
 
 #-----------------------------------------------------------------#
 # Test configuration.                                             #
 #-----------------------------------------------------------------#
 
-before_test:
-  - cd %APPVEYOR_BUILD_FOLDER%\test\Localization.JsonLocalizer.Tests
-
 test: off
 
 test_script:
-  - dnx test
+  - dotnet test "test\Localization.JsonLocalizer.Tests" -c %CONFIGURATION% --no-build
 
-# build Configuration, i.e. Debug, Release, etc.
-configuration: Debug
+artifacts:
+  - path: artifacts\**\*.*
